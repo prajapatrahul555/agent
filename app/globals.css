@@ -1,8 +1,52 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,600;1,6..72,400&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap');
 @import "tailwindcss";
 
-body {
-  background-color: #f8fafc;
-  color: #0f172a;
-  font-family: var(--font-sans), Arial, Helvetica, sans-serif;
+:root {
+  --bg-app: #f8faf9;
+  --surface-card: #ffffff;
+  --ink-primary: #0f172a;
+  --ink-muted: #64748b;
+  --ink-soft: #94a3b8;
+  --accent-gold: #d97706;
+  --accent-gold-hover: #b45309;
+  --accent-gold-soft: #fef3c7;
+  --border-subtle: #e2e8f0;
+  --border-hairline: #f1f5f9;
 }
+
+body {
+  background-color: var(--bg-app);
+  color: var(--ink-primary);
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+.font-display {
+  font-family: 'Plus Jakarta Sans', sans-serif;
+}
+
+.font-editorial {
+  font-family: 'Newsreader', Georgia, serif;
+}
+
+.tabular-nums {
+  font-variant-numeric: tabular-nums;
+}
+
+/* Custom subtle scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 9999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
 

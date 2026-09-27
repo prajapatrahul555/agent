@@ -2,100 +2,140 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { PlusCircle, Search, Calendar } from "lucide-react";
+import { PlusCircle, Calendar, Clock, User, Layers, BookOpen } from "lucide-react";
+import { PageHeader } from "@/components/ui/PageHeader";
+import { Toolbar } from "@/components/ui/Toolbar";
+import { Badge } from "@/components/ui/Badge";
+import { EmptyState } from "@/components/ui/EmptyState";
+import { SkeletonLoader } from "@/components/ui/SkeletonLoader";
+import { Button } from "@/components/ui/Button";
 
 export default function TimetablePage() {
-  const [timetables, setTimetables] = useState([]);
+  const [timetables, setTimetables] = useState<any[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     fetch("/api/timetable")
       .then((res) => res.json())
       .then((data) => {
         if (data.success) setTimetables(data.data);
-      });
+      })
+      .finally(() => setLoading(false));
   }, []);
 
-  const filteredTimetables = timetables.filter((t: any) =>
-    t.dayOfWeek?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    t.classId?.name?.toLowerCase().includes(searchTerm.toLowerCase())
+  const filteredTimetables = timetables.filter(
+    (t: any) =>
+      t.dayOfWeek?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      t.classId?.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      t.section?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   return (
-    <div className="p-8 max-w-7xl mx-auto">
+    <div className="p-6 md:p-8 max-w-7xl mx-auto font-sans">
       {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-8 pb-6 border-b border-slate-200">
-        <div>
-          <h1 className="text-3xl font-extrabold text-slate-900 tracking-tight">Timetable Management</h1>
-          <p className="text-slate-500 mt-1">Organize and view class schedules and weekly periods.</p>
-        </div>
-        <Link
-          href="/dashboard/admin/timetable/new"
-          className="mt-4 md:mt-0 inline-flex items-center space-x-2 px-4 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-medium text-sm shadow-lg shadow-indigo-600/20 transition-all"
-        >
-          <PlusCircle className="w-4 h-4" />
-          <span>Create New Timetable</span>
-        </Link>
-      </div>
+      <PageHeader
+        title="Timetable & Class Schedules"
+        description="Organize weekly class periods, subjects, and period allocations for all grades."
+        breadcrumbs={[{ label: "Timetable" }]}
+        action={
+          <Link href="/dashboard/admin/timetable/new">
+            <Button variant="gold" icon={<PlusCircle className="w-4 h-4" />}>
+              Create Timetable
+            </Button>
+          </Link>
+        }
+      />
 
-      {/* Search Bar */}
-      <div className="bg-white p-4 rounded-2xl shadow-sm border border-slate-100 mb-6 flex items-center space-x-4">
-        <div className="relative flex-1">
-          <Search className="absolute left-3.5 top-3 w-5 h-5 text-slate-400" />
-          <input
-            type="text"
-            placeholder="Search by day of week or class name..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full pl-11 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all"
-          />
+      {/* Toolbar */}
+      <Toolbar
+        searchValue={searchTerm}
+        onSearchChange={setSearchTerm}
+        placeholder="Search by day of week, class, or section..."
+      >
+        <div className="text-xs text-slate-500 font-semibold px-2.5 py-1 bg-slate-100 rounded-lg">
+          Schedules: <span className="text-slate-900 font-bold tabular-nums">{filteredTimetables.length}</span>
         </div>
-      </div>
+      </Toolbar>
 
-      {/* Table Container */}
-      <div className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="w-full text-left border-collapse">
-            <thead>
-              <tr className="bg-slate-50 border-b border-slate-200 text-slate-600 text-xs uppercase font-semibold tracking-wider">
-                <th className="py-4 px-6">Class</th>
-                <th className="py-4 px-6">Day of Week</th>
-                <th className="py-4 px-6 text-right">Periods</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-100 text-sm text-slate-700">
-              {filteredTimetables.length > 0 ? (
-                filteredTimetables.map((t: any) => (
-                  <tr key={t._id} className="hover:bg-slate-50/80 transition-colors">
-                    <td className="py-4 px-6 font-semibold text-slate-900 flex items-center space-x-3">
-                      <div className="w-8 h-8 rounded-full bg-violet-50 text-violet-600 flex items-center justify-center">
-                        <Calendar className="w-4 h-4" />
+      {/* Timetable Cards Grid */}
+      {loading ? (
+        <SkeletonLoader type="cards" rows={4} />
+      ) : filteredTimetables.length > 0 ? (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {filteredTimetables.map((t: any) => (
+            <div
+              key={t._id}
+              className="bg-white border border-slate-200/90 rounded-3xl p-6 shadow-xs hover:shadow-md transition-all flex flex-col justify-between"
+            >
+              <div>
+                <div className="flex items-center justify-between pb-4 mb-4 border-b border-slate-100">
+                  <div className="flex items-center space-x-3">
+                    <div className="p-2.5 bg-amber-50 border border-amber-200/70 text-amber-800 rounded-xl">
+                      <Layers className="w-5 h-5" />
+                    </div>
+                    <div>
+                      <h3 className="text-base font-extrabold text-slate-900 font-display">
+                        {t.classId?.name || "Class"} — <span className="text-amber-800">{t.section || "Section A"}</span>
+                      </h3>
+                      <p className="text-xs text-slate-500 flex items-center gap-1 mt-0.5">
+                        <Calendar className="w-3.5 h-3.5 text-amber-600" /> Day: <span className="font-semibold text-slate-700">{t.dayOfWeek}</span>
+                      </p>
+                    </div>
+                  </div>
+                  <Badge variant="gold">{t.periods?.length || 0} Periods</Badge>
+                </div>
+
+                {/* Periods Listing */}
+                <div className="space-y-2.5">
+                  {t.periods && t.periods.length > 0 ? (
+                    t.periods.map((p: any, idx: number) => (
+                      <div
+                        key={idx}
+                        className="p-3 bg-slate-50 border border-slate-200/70 rounded-xl flex items-center justify-between text-xs"
+                      >
+                        <div className="flex items-center space-x-2.5">
+                          <BookOpen className="w-4 h-4 text-amber-600 shrink-0" />
+                          <div>
+                            <span className="font-bold text-slate-900 block">{p.subject}</span>
+                            <span className="text-[11px] text-slate-500 flex items-center gap-1 mt-0.5">
+                              <User className="w-3 h-3 text-slate-400" />
+                              {p.teacherId?.userId?.name || p.teacherId?.employeeId || "Instructor Assigned"}
+                            </span>
+                          </div>
+                        </div>
+                        <span className="font-mono font-semibold text-slate-700 bg-white border border-slate-200 px-2 py-1 rounded-lg shrink-0 flex items-center gap-1">
+                          <Clock className="w-3 h-3 text-slate-400" />
+                          {p.startTime} - {p.endTime}
+                        </span>
                       </div>
-                      <span>{t.classId?.name || "N/A"}</span>
-                    </td>
-                    <td className="py-4 px-6">
-                      <span className="px-3 py-1 bg-slate-100 text-slate-700 rounded-lg text-xs font-medium">
-                        {t.dayOfWeek}
-                      </span>
-                    </td>
-                    <td className="py-4 px-6 text-right font-medium text-slate-600">
-                      {t.periods?.length || 0} periods scheduled
-                    </td>
-                  </tr>
-                ))
-              ) : (
-                <tr>
-                  <td colSpan={3} className="py-12 text-center text-slate-400">
-                    <Calendar className="w-10 h-10 mx-auto mb-3 text-slate-300" />
-                    <p className="font-medium">No timetables found</p>
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
+                    ))
+                  ) : (
+                    <p className="text-xs text-slate-400 italic">No period slots added yet.</p>
+                  )}
+                </div>
+              </div>
+            </div>
+          ))}
         </div>
-      </div>
+      ) : (
+        <EmptyState
+          icon={Calendar}
+          title="No timetables found"
+          description={
+            searchTerm
+              ? `No schedule entries matched "${searchTerm}".`
+              : "No class timetables have been created yet."
+          }
+          action={
+            <Link href="/dashboard/admin/timetable/new">
+              <Button variant="gold" size="sm" icon={<PlusCircle className="w-4 h-4" />}>
+                Create Schedule
+              </Button>
+            </Link>
+          }
+        />
+      )}
     </div>
   );
 }
-

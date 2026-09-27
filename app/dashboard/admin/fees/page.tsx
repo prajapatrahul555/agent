@@ -1,71 +1,125 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { DollarSign, Search } from "lucide-react";
+import Link from "next/link";
+import { DollarSign, PlusCircle } from "lucide-react";
+import { PageHeader } from "@/components/ui/PageHeader";
+import { Toolbar } from "@/components/ui/Toolbar";
+import { TableShell, TableHeader, TableHead, TableBody, TableRow, TableCell } from "@/components/ui/TableShell";
+import { Avatar } from "@/components/ui/Avatar";
+import { Badge } from "@/components/ui/Badge";
+import { EmptyState } from "@/components/ui/EmptyState";
+import { SkeletonLoader } from "@/components/ui/SkeletonLoader";
+import { Button } from "@/components/ui/Button";
 
 export default function FeesPage() {
-  const [fees, setFees] = useState([]);
+  const [fees, setFees] = useState<any[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     fetch("/api/fees")
       .then((res) => res.json())
       .then((data) => {
         if (data.success) setFees(data.data);
-      });
+      })
+      .finally(() => setLoading(false));
   }, []);
 
-  const filteredFees = fees.filter((f: any) =>
-    f.studentId?.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    f.status?.toLowerCase().includes(searchTerm.toLowerCase())
+  const filteredFees = fees.filter(
+    (f: any) =>
+      f.studentId?.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      f.status?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   return (
-    <div className="p-8 max-w-7xl mx-auto">
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-8 pb-6 border-b border-slate-200">
-        <div>
-          <h1 className="text-3xl font-extrabold text-slate-900 tracking-tight">Fee Management</h1>
-          <p className="text-slate-500 mt-1">Track payments and handle fee statuses.</p>
-        </div>
-      </div>
+    <div className="p-6 md:p-8 max-w-7xl mx-auto">
+      {/* Header */}
+      <PageHeader
+        title="Fee & Financial Ledger"
+        description="Track tuition payments, overdue balances, and student transaction statuses."
+        breadcrumbs={[{ label: "Fees & Ledger" }]}
+        action={
+          <Link href="/dashboard/admin/fees/new">
+            <Button variant="gold" icon={PlusCircle}>
+              Record New Fee
+            </Button>
+          </Link>
+        }
+      />
 
-      <div className="bg-white p-4 rounded-2xl shadow-sm border border-slate-100 mb-6">
-        <div className="relative">
-          <Search className="absolute left-3.5 top-3 w-5 h-5 text-slate-400" />
-          <input
-            type="text"
-            placeholder="Search by student name or status..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full pl-11 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
-          />
+      {/* Toolbar */}
+      <Toolbar
+        searchValue={searchTerm}
+        onSearchChange={setSearchTerm}
+        placeholder="Search by student name or status..."
+      >
+        <div className="text-xs text-slate-500 font-semibold px-2 py-1 bg-slate-100 rounded-lg">
+          Records: <span className="text-slate-900 font-bold tabular-nums">{filteredFees.length}</span>
         </div>
-      </div>
+      </Toolbar>
 
-      <div className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
-        <table className="w-full text-left">
-          <thead className="bg-slate-50 border-b">
-            <tr className="text-xs uppercase text-slate-600 font-semibold">
-              <th className="py-4 px-6">Student</th>
-              <th className="py-4 px-6">Amount</th>
-              <th className="py-4 px-6">Status</th>
+      {/* Table Container */}
+      {loading ? (
+        <SkeletonLoader type="table" rows={5} />
+      ) : filteredFees.length > 0 ? (
+        <TableShell>
+          <TableHeader>
+            <tr>
+              <TableHead>Student Name</TableHead>
+              <TableHead>Amount</TableHead>
+              <TableHead>Status</TableHead>
+              <TableHead className="text-right">Actions</TableHead>
             </tr>
-          </thead>
-          <tbody className="divide-y divide-slate-100 text-sm text-slate-700">
+          </TableHeader>
+          <TableBody>
             {filteredFees.map((f: any) => (
-              <tr key={f._id} className="hover:bg-slate-50">
-                <td className="py-4 px-6 font-semibold">{f.studentId?.name || "N/A"}</td>
-                <td className="py-4 px-6">${f.amount}</td>
-                <td className="py-4 px-6">
-                  <span className={`px-2 py-1 rounded-lg text-xs font-bold ${f.status === 'Paid' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
-                    {f.status}
+              <TableRow key={f._id}>
+                <TableCell>
+                  <div className="flex items-center gap-3">
+                    <Avatar name={f.studentId?.name || "Student"} size="sm" />
+                    <div>
+                      <span className="font-bold text-slate-900 text-sm">{f.studentId?.name || "Unassigned"}</span>
+                      {f.studentId?.rollNumber && (
+                        <p className="text-[11px] font-mono text-slate-400">Roll: {f.studentId.rollNumber}</p>
+                      )}
+                    </div>
+                  </div>
+                </TableCell>
+                <TableCell className="font-extrabold text-slate-900 text-sm tabular-nums">
+                  ${Number(f.amount ?? 0).toLocaleString()}
+                </TableCell>
+                <TableCell>
+                  <Badge status={f.status} />
+                </TableCell>
+                <TableCell className="text-right">
+                  <span className="text-xs font-semibold text-amber-700 hover:underline cursor-pointer">
+                    Manage Payment
                   </span>
-                </td>
-              </tr>
+                </TableCell>
+              </TableRow>
             ))}
-          </tbody>
-        </table>
-      </div>
+          </TableBody>
+        </TableShell>
+      ) : (
+        <EmptyState
+          icon={DollarSign}
+          title="No fee records found"
+          description={
+            searchTerm
+              ? `No fee records matched "${searchTerm}".`
+              : "No fee entries have been recorded yet."
+          }
+          action={
+            <Link href="/dashboard/admin/fees/new">
+              <Button variant="gold" size="sm" icon={PlusCircle}>
+                Add Fee Record
+              </Button>
+            </Link>
+          }
+        />
+      )}
     </div>
   );
 }
+

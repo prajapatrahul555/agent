@@ -2,6 +2,8 @@
 
 import { useEffect, useState } from "react";
 import { Users, GraduationCap, DollarSign, CalendarCheck } from "lucide-react";
+import { StatTile } from "@/components/ui/StatTile";
+import { SkeletonLoader } from "@/components/ui/SkeletonLoader";
 
 export default function AdminStats() {
   const [stats, setStats] = useState<any>(null);
@@ -15,66 +17,62 @@ export default function AdminStats() {
   }, []);
 
   if (!stats) {
-    return (
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-        {[1, 2, 3, 4].map((i) => (
-          <div key={i} className="p-6 bg-white rounded-2xl shadow-sm border border-slate-100 animate-pulse h-32" />
-        ))}
-      </div>
-    );
+    return <SkeletonLoader type="cards" rows={4} />;
   }
 
   const statItems = [
     {
-      title: "Total Students",
-      value: stats.totalStudents,
+      title: "Enrolled Students",
+      value: stats.totalStudents ?? 0,
       icon: Users,
-      color: "bg-blue-500 text-blue-500",
-      lightColor: "bg-blue-50",
+      trend: "+8.4%",
+      context: "Active academic year",
+      iconBg: "bg-amber-50 border-amber-200/60",
+      iconColor: "text-amber-700",
     },
     {
-      title: "Total Teachers",
-      value: stats.totalTeachers,
+      title: "Faculty Members",
+      value: stats.totalTeachers ?? 0,
       icon: GraduationCap,
-      color: "bg-emerald-500 text-emerald-500",
-      lightColor: "bg-emerald-50",
+      context: "Across all departments",
+      iconBg: "bg-slate-100 border-slate-200",
+      iconColor: "text-slate-800",
     },
     {
-      title: "Total Revenue",
-      value: `$${stats.totalRevenue?.toLocaleString() || 0}`,
+      title: "Total Fee Collection",
+      value: `$${(stats.totalRevenue ?? 0).toLocaleString()}`,
       icon: DollarSign,
-      color: "bg-violet-500 text-violet-500",
-      lightColor: "bg-violet-50",
+      trend: "+12.1%",
+      context: "YTD collected",
+      iconBg: "bg-emerald-50 border-emerald-200/60",
+      iconColor: "text-emerald-700",
     },
     {
       title: "Attendance Today",
-      value: stats.todayAttendance,
+      value: stats.todayAttendance ?? 0,
       icon: CalendarCheck,
-      color: "bg-amber-500 text-amber-500",
-      lightColor: "bg-amber-50",
+      context: "Logged entries today",
+      iconBg: "bg-sky-50 border-sky-200/60",
+      iconColor: "text-sky-700",
     },
   ];
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-      {statItems.map((item, index) => {
-        const Icon = item.icon;
-        return (
-          <div
-            key={index}
-            className="p-6 bg-white rounded-2xl shadow-sm border border-slate-100/80 hover:shadow-md transition-all duration-300 flex items-center justify-between"
-          >
-            <div>
-              <p className="text-sm font-medium text-slate-500 mb-1">{item.title}</p>
-              <h3 className="text-3xl font-bold text-slate-900 tracking-tight">{item.value}</h3>
-            </div>
-            <div className={`p-4 rounded-2xl ${item.lightColor}`}>
-              <Icon className={`w-7 h-7 ${item.color.split(" ")[1]}`} />
-            </div>
-          </div>
-        );
-      })}
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 mb-8">
+      {statItems.map((item, index) => (
+        <StatTile
+          key={index}
+          title={item.title}
+          value={item.value}
+          icon={item.icon}
+          trend={item.trend}
+          context={item.context}
+          iconBg={item.iconBg}
+          iconColor={item.iconColor}
+        />
+      ))}
     </div>
   );
 }
+
 
