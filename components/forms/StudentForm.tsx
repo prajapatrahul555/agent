@@ -82,6 +82,8 @@ export default function StudentForm({ defaultValues }: { defaultValues?: any }) 
     } catch (err: any) {
       toast.error("Error submitting form");
     }
+    useForm({});
+
   };
 
   return (

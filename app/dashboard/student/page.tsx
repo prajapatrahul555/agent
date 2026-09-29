@@ -1,119 +1,94 @@
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { redirect } from "next/navigation";
-import { BookOpen, Award, CalendarCheck, Clock, User, Layers } from "lucide-react";
-import dbConnect from "@/lib/db";
-import Timetable from "@/models/Timetable";
+import { User, Mail, Phone, MapPin, Calendar, BookOpen, Hash, School } from "lucide-react";
 
-export default async function StudentDashboard() {
+export default async function StudentInformationPage() {
   const session = await getServerSession(authOptions);
 
   if (!session || (session as any).user?.role !== "Student") {
     redirect("/login");
   }
 
-  await dbConnect();
-  const timetables = await Timetable.find()
-    .populate("classId", "name")
-    .populate({
-      path: "periods.teacherId",
-      populate: { path: "userId", select: "name" }
-    })
-    .limit(3)
-    .lean();
+  const studentName = (session as any).user.name;
+  const studentEmail = (session as any).user.email;
 
   return (
-    <div className="p-6 md:p-8 max-w-7xl mx-auto font-sans">
-      {/* Top Banner */}
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-8 pb-6 border-b border-slate-200">
-        <div>
-          <h1 className="text-3xl font-extrabold text-slate-900 tracking-tight font-display">Student Portal</h1>
-          <p className="text-slate-500 mt-1">
-            Welcome back, <span className="font-semibold text-slate-700">{(session as any).user.name}</span>! View your courses, schedule, and attendance.
-          </p>
-        </div>
+    <div className="p-6 md:p-8 max-w-4xl mx-auto font-sans">
+      {/* Page Header */}
+      <div className="mb-8 pb-6 border-b border-slate-200">
+        <h1 className="text-3xl font-extrabold text-slate-900 tracking-tight">My Information</h1>
+        <p className="text-slate-500 mt-1 text-sm">Your personal and academic profile details.</p>
       </div>
 
-      {/* Stats Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-        <div className="p-6 bg-white rounded-2xl shadow-xs border border-slate-200/80 flex items-center justify-between">
-          <div>
-            <p className="text-sm font-medium text-slate-500 mb-1">Enrolled Subjects</p>
-            <h3 className="text-3xl font-bold text-slate-900 font-display">5</h3>
-          </div>
-          <div className="p-4 rounded-2xl bg-amber-50 text-amber-700 border border-amber-200/60">
-            <BookOpen className="w-7 h-7" />
-          </div>
-        </div>
-
-        <div className="p-6 bg-white rounded-2xl shadow-xs border border-slate-200/80 flex items-center justify-between">
-          <div>
-            <p className="text-sm font-medium text-slate-500 mb-1">Overall GPA</p>
-            <h3 className="text-3xl font-bold text-slate-900 font-display">3.85</h3>
-          </div>
-          <div className="p-4 rounded-2xl bg-emerald-50 text-emerald-700 border border-emerald-200/60">
-            <Award className="w-7 h-7" />
+      {/* Profile Card */}
+      <div className="bg-white rounded-3xl border border-slate-200/80 shadow-sm overflow-hidden mb-6">
+        {/* Header Banner */}
+        <div className="h-24 bg-gradient-to-r from-slate-800 to-slate-700 relative">
+          <div className="absolute -bottom-10 left-8">
+            <div className="w-20 h-20 rounded-2xl bg-amber-500 border-4 border-white shadow-lg flex items-center justify-center">
+              <span className="text-3xl font-extrabold text-white">
+                {studentName?.charAt(0)?.toUpperCase() || "S"}
+              </span>
+            </div>
           </div>
         </div>
 
-        <div className="p-6 bg-white rounded-2xl shadow-xs border border-slate-200/80 flex items-center justify-between">
-          <div>
-            <p className="text-sm font-medium text-slate-500 mb-1">Attendance Rate</p>
-            <h3 className="text-3xl font-bold text-slate-900 font-display">96%</h3>
-          </div>
-          <div className="p-4 rounded-2xl bg-sky-50 text-sky-700 border border-sky-200/60">
-            <CalendarCheck className="w-7 h-7" />
-          </div>
-        </div>
-      </div>
-
-      {/* Class Timetable Schedule */}
-      <div className="bg-white p-6 rounded-3xl border border-slate-200/80 shadow-xs">
-        <div className="flex items-center justify-between mb-6 pb-4 border-b border-slate-100">
-          <div>
-            <h2 className="text-lg font-bold text-slate-900 font-display">Class Timetable & Schedule</h2>
-            <p className="text-xs text-slate-500">Live class periods from institutional database.</p>
-          </div>
-          <span className="text-xs font-semibold px-3 py-1 bg-amber-50 border border-amber-200 text-amber-800 rounded-full">
-            Semester Schedule
+        <div className="pt-14 pb-6 px-8">
+          <h2 className="text-2xl font-extrabold text-slate-900">{studentName}</h2>
+          <span className="inline-flex items-center gap-1.5 mt-1 px-3 py-0.5 rounded-full text-xs font-semibold bg-amber-100 text-amber-800 border border-amber-200">
+            <School className="w-3 h-3" /> Student
           </span>
         </div>
 
-        {timetables.length > 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {timetables.map((t: any) => (
-              <div key={t._id} className="p-4 bg-slate-50 border border-slate-200 rounded-2xl">
-                <div className="flex items-center justify-between mb-3">
-                  <span className="font-bold text-slate-900 text-sm">{t.classId?.name || "Class"} ({t.section || "A"})</span>
-                  <span className="text-xs font-semibold text-amber-800 bg-amber-100/70 px-2.5 py-0.5 rounded-full">{t.dayOfWeek}</span>
-                </div>
-                <div className="space-y-2">
-                  {t.periods?.map((p: any, idx: number) => (
-                    <div key={idx} className="flex items-center justify-between text-xs bg-white p-2.5 rounded-xl border border-slate-200/60">
-                      <div>
-                        <span className="font-bold text-slate-800 flex items-center gap-1.5">
-                          <BookOpen className="w-3.5 h-3.5 text-amber-600" />
-                          {p.subject}
-                        </span>
-                        <span className="text-[11px] text-slate-500 flex items-center gap-1 mt-0.5">
-                          <User className="w-3 h-3 text-slate-400" />
-                          {p.teacherId?.userId?.name || p.teacherId?.employeeId || "Instructor Assigned"}
-                        </span>
-                      </div>
-                      <span className="text-slate-600 font-mono flex items-center gap-1 bg-slate-50 px-2 py-1 rounded-lg border border-slate-200">
-                        <Clock className="w-3 h-3 text-slate-400" /> {p.startTime} - {p.endTime}
-                      </span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            ))}
-          </div>
-        ) : (
-          <div className="p-4 rounded-xl bg-slate-50 text-slate-500 text-xs text-center">
-            No class timetable entries posted yet. Check back soon!
-          </div>
-        )}
+        {/* Info Grid */}
+        <div className="px-8 pb-8 grid grid-cols-1 md:grid-cols-2 gap-4">
+          <InfoRow icon={<Mail className="w-4 h-4 text-amber-600" />} label="Email Address" value={studentEmail} />
+          <InfoRow icon={<Hash className="w-4 h-4 text-amber-600" />} label="Student ID" value="STU-2024-001" />
+          <InfoRow icon={<BookOpen className="w-4 h-4 text-amber-600" />} label="Class / Section" value="Class 10 — Section A" />
+          <InfoRow icon={<Calendar className="w-4 h-4 text-amber-600" />} label="Admission Year" value="2022" />
+          <InfoRow icon={<Phone className="w-4 h-4 text-amber-600" />} label="Contact Number" value="+91 98765 43210" />
+          <InfoRow icon={<MapPin className="w-4 h-4 text-amber-600" />} label="Address" value="123 School Lane, City" />
+        </div>
+      </div>
+
+      {/* Quick Links */}
+      <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+        {[
+          { label: "View Marksheet", href: "/dashboard/student/marksheet", color: "bg-emerald-50 border-emerald-200 text-emerald-800" },
+          { label: "Attendance Record", href: "/dashboard/student/attendance", color: "bg-sky-50 border-sky-200 text-sky-800" },
+          { label: "Homework", href: "/dashboard/student/homework", color: "bg-violet-50 border-violet-200 text-violet-800" },
+          { label: "Timetable", href: "/dashboard/student/timetable", color: "bg-amber-50 border-amber-200 text-amber-800" },
+          { label: "Notices", href: "/dashboard/student/notices", color: "bg-rose-50 border-rose-200 text-rose-800" },
+        ].map((item) => (
+          <a
+            key={item.href}
+            href={item.href}
+            className={`flex items-center justify-center py-3 px-4 rounded-2xl border font-semibold text-sm transition hover:opacity-80 ${item.color}`}
+          >
+            {item.label}
+          </a>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function InfoRow({
+  icon,
+  label,
+  value,
+}: {
+  icon: React.ReactNode;
+  label: string;
+  value: string;
+}) {
+  return (
+    <div className="flex items-start gap-3 p-4 bg-slate-50 rounded-2xl border border-slate-200/80">
+      <div className="mt-0.5 p-2 bg-amber-50 rounded-lg border border-amber-100">{icon}</div>
+      <div>
+        <p className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">{label}</p>
+        <p className="text-sm font-semibold text-slate-800 mt-0.5">{value}</p>
       </div>
     </div>
   );

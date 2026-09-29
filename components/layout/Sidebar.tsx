@@ -18,6 +18,9 @@ import {
   Menu,
   X,
   BookOpen,
+  User,
+  ClipboardList,
+  Bell,
 } from "lucide-react";
 import { signOut } from "next-auth/react";
 
@@ -26,7 +29,18 @@ export default function Sidebar({ role }: { role: string }) {
   const [mobileOpen, setMobileOpen] = useState(false);
   const baseRole = role ? role.toLowerCase() : "admin";
 
-  const links = [
+  // Student-only navigation links
+  const studentLinks = [
+    { label: "My Information", href: "/dashboard/student", icon: User },
+    { label: "Marksheet", href: "/dashboard/student/marksheet", icon: FileText },
+    { label: "Attendance", href: "/dashboard/student/attendance", icon: CheckSquare },
+    { label: "Homework", href: "/dashboard/student/homework", icon: ClipboardList },
+    { label: "Timetable", href: "/dashboard/student/timetable", icon: Calendar },
+    { label: "Notices", href: "/dashboard/student/notices", icon: Bell },
+  ];
+
+  // Admin navigation links
+  const adminLinks = [
     { label: "Overview", href: `/dashboard/${baseRole}`, icon: LayoutDashboard },
     { label: "Students", href: "/dashboard/admin/students", icon: Users },
     { label: "Teachers", href: "/dashboard/admin/teachers", icon: GraduationCap },
@@ -37,6 +51,20 @@ export default function Sidebar({ role }: { role: string }) {
     { label: "Announcements", href: "/dashboard/admin/announcements", icon: Megaphone },
     { label: "Settings", href: "/dashboard/admin/settings", icon: Settings },
   ];
+
+  // Teacher navigation links
+  const teacherLinks = [
+    { label: "Overview", href: "/dashboard/teacher", icon: LayoutDashboard },
+    { label: "Attendance", href: "/dashboard/teacher/attendance", icon: CheckSquare },
+    { label: "Assignments", href: "/dashboard/teacher/assignments", icon: BookOpen },
+  ];
+
+  const links =
+    baseRole === "student"
+      ? studentLinks
+      : baseRole === "teacher"
+      ? teacherLinks
+      : adminLinks;
 
   const sidebarContent = (
     <div className="flex flex-col h-full bg-slate-900 text-slate-300 border-r border-slate-800 shadow-2xl">
